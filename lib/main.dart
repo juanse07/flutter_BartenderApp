@@ -1,6 +1,13 @@
+// main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/home_screen.dart';
-void main() {
+import 'screens/event_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -10,42 +17,72 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Bartender Companion',
+      title: 'Bottom Navigation Demo',
       theme: ThemeData(
         primarySwatch: Colors.amber,
-        scaffoldBackgroundColor: Colors.black,
-        textTheme: const TextTheme(
+        scaffoldBackgroundColor: Colors.black87,
+        brightness: Brightness.dark,
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Colors.black87,
+          selectedItemColor: Colors.amber,
+          unselectedItemColor: Colors.white70,
+      ),
+      textTheme: const TextTheme(
           bodyLarge: TextStyle(color: Colors.white),
           bodyMedium: TextStyle(color: Colors.white),
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.amber,
-        ),
       ),
-      home: const HomeScreen(),
+      home: const NavigationScreen(),
     );
   }
 }
 
-// class HomeScreen extends StatelessWidget {
-//   const HomeScreen({super.key});
+class NavigationScreen extends StatefulWidget {
+  const NavigationScreen({super.key});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Bartender Companion'),
-//       ),
-//       body: const Center(
-//         child: Text(
-//           'Welcome to Bartender Companion',
-//           style: TextStyle(
-//             fontSize: 24,
-//             color: Colors.amber,
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+  @override
+  State<NavigationScreen> createState() => _NavigationScreenState();
+}
+
+class _NavigationScreenState extends State<NavigationScreen> {
+  int _selectedIndex = 0;
+  
+  static const List<Widget> _screens = <Widget>[
+    HomeScreen(),
+    EventScreen(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('Current index: $_selectedIndex'); // Debug print
+    return Scaffold(
+      body: SafeArea(
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: _screens,
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.event),
+            label: 'Events',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.amber,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'notification_service.dart';
 
 class SocketService {
@@ -7,7 +8,7 @@ class SocketService {
 
   SocketService._internal() {
     _socket = IO.io(
-      process.env.API_URL,
+      dotenv.env['API_URL'] ?? 'http://localhost:8888',
       IO.OptionBuilder()
         .setTransports(['websocket'])
         .setPath('/socket.io/')

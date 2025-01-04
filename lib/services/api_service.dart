@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = process.env.API_URL;
+  final String baseUrl = dotenv.env['API_URL'] ?? 'http://localhost:8888';
   
   Future<List<dynamic>> getQuotationsWithDebug() async {
     try {
