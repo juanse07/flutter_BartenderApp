@@ -1,5 +1,6 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/intl.dart';
 import 'notification_service.dart';
 
 class SocketService {
@@ -19,6 +20,26 @@ class SocketService {
 
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
+
+    String formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('MMM d, y').format(date); // Oct 25, 2023
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  // Helper function to format time
+  String formatTime(String timeStr) {
+    try {
+      // Assuming time comes in 24-hour format (HH:mm)
+      final time = DateFormat('HH:mm').parse(timeStr);
+      return DateFormat('h:mm a').format(time); // 2:30 PM
+    } catch (e) {
+      return timeStr;
+    }
+  }
 
   void onConnect(Function(dynamic) handler) {
     _socket.onConnect(handler);
@@ -45,10 +66,15 @@ _socket.on(backendEvent, (data) async {
       if (data is Map<String, dynamic>) {
         String clientName = data['clientName'] ?? 'Unknown';
         String companyName = data['companyName'] ?? 'N/A';
+         String eventDate = formatDate(data['eventDate'] ?? 'N/A');
+        String startTime = data['startTime'] ?? 'N/A';
+        String endTime = data['endTime'] ?? 'N/A';
+        int numberOfGuests = data['numberOfGuests'] ?? 0;
+
         
         await _notificationService.showNotification(
-          title: 'New Quotation Request',
-          body: 'From: $clientName\nCompany: $companyName',
+          title: 'NSC from: $clientName',
+          body: 'Date: $eventDate\nTime: $startTime-$endTime\nGuests: $numberOfGuests\nAprox',
         );
         print('✅ Notification sent for new quotation');
       } else {

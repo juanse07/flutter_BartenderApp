@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../services/socket_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -230,58 +231,80 @@ void dispose() {
           final createdAt = DateTime.tryParse(quotation['createdAt'] ?? '')
               ?.toString().split(' ')[0] ?? 'No date';
 
-          return Card(
-            margin: const EdgeInsets.all(8.0),
-            color: Colors.black87,
-            child: ExpansionTile(
-              backgroundColor: Colors.black87,
-              collapsedBackgroundColor: Colors.black87,
-              title: Text(
-                quotation['clientName'] ?? 'No name',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-                ),
+          // Replace the Card return statement in your ListView.builder with this:
+return Card(
+  margin: const EdgeInsets.all(8.0),
+  color: Colors.black87,
+  child: ExpansionTile(
+    backgroundColor: Colors.black87,
+    collapsedBackgroundColor: Colors.black87,
+    title: Text(
+      quotation['clientName'] ?? 'No name',
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        color: Colors.amber,
+      ),
+    ),
+    subtitle: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Company: ${quotation['companyName'] ?? 'N/A'}',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        Row(
+          children: [
+            Text(
+              'Created: $createdAt ',
+              style: const TextStyle(color: Colors.white70),
+            ),
+             const SizedBox(width: 8), // Added spacing
+            Text(
+              timeago.format(DateTime.parse(quotation['createdAt'] ?? '')),
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
               ),
-              subtitle: Text(
-                'Company: ${quotation['companyName'] ?? 'N/A'}\n'
-                'Created: $createdAt',
-                style: const TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+      ],
+    ),
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoRow('Event Date', eventDate),
+            _buildInfoRow('Time', '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}'),
+            _buildInfoRow('Guests', '${quotation['numberOfGuests']?.toString() ?? 'N/A'}'),
+            const SizedBox(height: 8),
+            const Text(
+              'Services Requested:',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.amber,
               ),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoRow('Event Date', eventDate),
-                      _buildInfoRow('Time', '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}'),
-                      _buildInfoRow('Guests', '${quotation['numberOfGuests']?.toString() ?? 'N/A'}'),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Services Requested:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber,
-                        ),
-                      ),
-                      ...List<Widget>.from(
-                        (quotation['servicesRequested'] as List? ?? []).map(
-                          (service) => Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 4),
-                            child: Text(
-                              '• $service',
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+            ),
+            ...List<Widget>.from(
+              (quotation['servicesRequested'] as List? ?? []).map(
+                (service) => Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 4),
+                  child: Text(
+                    '• $service',
+                    style: const TextStyle(color: Colors.white70),
                   ),
                 ),
-              ],
+              ),
             ),
-          );
+          ],
+        ),
+      ),
+    ],
+  ),
+);
         },
       ),
     );
