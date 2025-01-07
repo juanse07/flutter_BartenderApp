@@ -47,7 +47,7 @@ class NotificationService {
           presentSound: true,
           presentBanner: true,
           sound: 'default',
-          subtitle: 'Subtitle', // Add a subtitle if needed
+         
           threadIdentifier: 'thread_id', // Group notifications by thread
         ),
       );

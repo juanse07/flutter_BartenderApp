@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../services/socket_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -71,14 +72,29 @@ void dispose() {
   super.dispose();
 }
 
+Future<void> _openMap(String addressToOpen) async {
+    final Uri googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeFull(addressToOpen)}');
+    
+    if (await canLaunchUrl(googleMapsUrl)) {
+      await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+    } else {
+      print('Could not launch $googleMapsUrl');
+    }
+  }
+
+  // The
+
 
   Future<void> _loadQuotations() async {
+  
     if (!mounted) return;
 
     setState(() {
       isLoading = true;
       error = '';
     });
+
+  
 
     try {
       print('Starting to load quotations');
@@ -153,6 +169,21 @@ void dispose() {
   Widget _buildBody() {
     print('Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
     
+  Color _getStatusColor(String state) {
+  switch (state.toLowerCase()) {
+    case 'approved':
+      return Colors.green;
+    case 'rejected':
+      return Colors.red;
+    case 'in_progress':
+      return Colors.blue;
+    case 'pending':
+    default:
+      return Colors.amber; // Yellow indicator for pending state
+  }
+}
+
+
     if (isLoading) {
       return const Center(
         child: Column(
@@ -238,12 +269,35 @@ return Card(
   child: ExpansionTile(
     backgroundColor: Colors.black87,
     collapsedBackgroundColor: Colors.black87,
-    title: Text(
-      quotation['clientName'] ?? 'No name',
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        color: Colors.amber,
-      ),
+    title: Row(
+      children: [
+        // Status Indicator
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: _getStatusColor(quotation['state'] ?? 'pending'),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: _getStatusColor(quotation['state'] ?? 'pending').withOpacity(0.3),
+                blurRadius: 4,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12), // Spacing between indicator and text
+        Expanded(
+          child: Text(
+            quotation['clientName'] ?? 'No name',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.amber,
+            ),
+          ),
+        ),
+      ],
     ),
     subtitle: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,6 +334,7 @@ return Card(
             _buildInfoRow('Event Date', eventDate),
             _buildInfoRow('Time', '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}'),
             _buildInfoRow('Guests', '${quotation['numberOfGuests']?.toString() ?? 'N/A'}'),
+
             const SizedBox(height: 8),
             const Text(
               'Services Requested:',
@@ -299,6 +354,44 @@ return Card(
                 ),
               ),
             ),
+           const Text(
+             'Address:',
+               style: TextStyle(
+                fontWeight: FontWeight.bold,
+                  color: Colors.amber,
+          ),
+        ),
+        InkWell(
+         onTap: () => _openMap(quotation['address'] ?? 'No address'),
+          child: Text(
+           quotation['address'] ?? 'No address',
+            style: const TextStyle(
+             color: Colors.white70,  // Changed to blue to indicate it's clickable
+              decoration: TextDecoration.underline,  // Added underline
+              decorationColor: Colors.white70,  // Underline color
+              decorationStyle: TextDecorationStyle.dashed,  // dotted underline
+              decorationThickness: 1,  // Thickness of the underline
+              height: 3,  // Line height
+            
+
+           ),
+                  ),
+        ),
+             const SizedBox(height: 4),
+                        const Text(
+                          'Notes:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16, top: 4),
+                          child: Text(
+                            quotation['notes'] ?? 'No notes',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                        ),
           ],
         ),
       ),
