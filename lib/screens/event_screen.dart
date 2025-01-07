@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../services/socket_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:url_launcher/url_launcher.dart';
+import '../widgets/buildInfoRow.dart';
+import '../widgets/custom_app_bar.dart';
+
 
 class EventScreen extends StatefulWidget {
   const EventScreen({super.key});
@@ -71,6 +76,7 @@ void dispose() {
 }
 
 
+
   Future<void> _loadQuotations() async {
     if (!mounted) return;
 
@@ -107,43 +113,35 @@ void dispose() {
     }
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.amber,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildInfoRow(String label, String value) {
+  //   return Padding(
+  //     padding: const EdgeInsets.only(bottom: 8.0),
+  //     child: Row(
+  //       children: [
+  //         Text(
+  //           '$label: ',
+  //           style: const TextStyle(
+  //             fontWeight: FontWeight.bold,
+  //             color: Colors.amber,
+  //           ),
+  //         ),
+  //         Text(
+  //           value,
+  //           style: const TextStyle(color: Colors.white70),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('DenverBartenders'),
-        backgroundColor: Colors.black87,
-        actions: [
-          Icon(
-          _socketService.isConnected ? Icons.cloud_done : Icons.cloud_off,
-          color: _socketService.isConnected ? Colors.green : Colors.red,
-        ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: isLoading ? null : _loadQuotations,
-          ),
-        ],
+     appBar: CustomAppBar(
+         title: 'DenverBartenders',
+        socketService: _socketService,
+        onRefresh: _loadQuotations,
+        isLoading: isLoading,
       ),
       body: _buildBody(),
     );
@@ -151,7 +149,23 @@ void dispose() {
 
   Widget _buildBody() {
     print('Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
-    
+
+  Color _getStatusColor(String state) {
+  switch (state.toLowerCase()) {
+    case 'approved':
+      return Colors.green;
+    case 'rejected':
+      return Colors.red;
+    case 'in_progress':
+      return Colors.blue;
+    case 'pending':
+    default:
+      return Colors.amber; // Yellow indicator for pending state
+  }
+}
+
+
+
     if (isLoading) {
       return const Center(
         child: Column(
@@ -230,71 +244,173 @@ void dispose() {
           final createdAt = DateTime.tryParse(quotation['createdAt'] ?? '')
               ?.toString().split(' ')[0] ?? 'No date';
 
-          return Card(
+      return Card(
             margin: const EdgeInsets.all(8.0),
             color: Colors.black87,
             child: ExpansionTile(
               backgroundColor: Colors.black87,
               collapsedBackgroundColor: Colors.black87,
-              title: Text(
-                quotation['clientName'] ?? 'No name',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-                ),
+              title: Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(quotation['state'] ?? 'pending'),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getStatusColor(
+                                  quotation['state'] ?? 'pending')
+                              .withOpacity(0.3),
+                          blurRadius: 4,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      quotation['clientName'] ?? 'No name',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              subtitle: Text(
-                'Company: ${quotation['companyName'] ?? 'N/A'}\n'
-                'Event Date: $eventDate',
-                style: const TextStyle(color: Colors.white70),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Company: ${quotation['companyName'] ?? 'N/A'}',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'When: $eventDate ',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        timeago.format(
+                            DateTime.parse(quotation['eventDate'] ?? '')),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                     
-                      _buildInfoRow('Time', '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}'),
-                      _buildInfoRow('Guests', '${quotation['numberOfGuests']?.toString() ?? 'N/A'}'),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Services Requested:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber,
+                      // Event Information Section
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.amber.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                      ...List<Widget>.from(
-                        (quotation['servicesRequested'] as List? ?? []).map(
-                          (service) => Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 4),
-                            child: Text(
-                              '• $service',
-                              style: const TextStyle(color: Colors.white70),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Event Information',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            InfoRow(label: 'Event Date', value: eventDate),
+                            InfoRow(
+                              label: 'Time',
+                              value:
+                                  '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}',
+                            ),
+                            InfoRow(
+                              label: 'Guests',
+                              value: '${quotation['numberOfGuests']?.toString() ?? 'N/A'}',
+                            ),
+                            InfoRow(
+                              label: 'Services Requested',
+                              value: quotation['servicesRequested'],
+                              type: 'services',
+                            ),
+                          ],
                         ),
                       ),
-
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Notes:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
-                          ),
+                      const SizedBox(height: 16),
+                      // Contact Information Section
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.amber.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16, top: 4),
-                          child: Text(
-                            quotation['notes'] ?? 'No notes',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Contact Information',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            InfoRow(
+                              label: 'Phone',
+                              value: quotation['phone'] ?? 'No phone',
+                              type: 'phone',
+                            ),
+                            InfoRow(
+                              label: 'Email',
+                              value: quotation['email'] ?? 'No email',
+                              type: 'email',
+                            ),
+                            InfoRow(
+                              label: 'Address',
+                              value: quotation['address'] ?? 'No address',
+                              type: 'map',
+                            ),
+                          ],
                         ),
-
-                         _buildInfoRow('Created at', createdAt),
-
+                      ),
+                      const SizedBox(height: 16),
+                      // Notes Section
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.amber.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InfoRow(
+                              label: 'Notes',
+                              value: quotation['notes'] ?? 'No notes',
+                              type: 'notes',
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

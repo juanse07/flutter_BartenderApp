@@ -4,6 +4,8 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../services/socket_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/buildInfoRow.dart';
+import '../widgets/custom_app_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,12 +16,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
- final SocketService _socketService = SocketService();
+  final SocketService _socketService = SocketService();
   List<dynamic> quotations = [];
   bool isLoading = true;
   String error = '';
 
-  
   @override
   void initState() {
     super.initState();
@@ -29,64 +30,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _initializeSocketListeners() {
-  print('🔧 Initializing socket listeners...');
-  
-  _socketService.onConnect((_) {
-    print('✅ HomeScreen: Socket connected');
-    setState(() {
-      error = '';
+    print('� Initializing socket listeners...');
+    _socketService.onConnect((_) {
+      print('✅ HomeScreen: Socket connected');
+      setState(() {
+        error = '';
+      });
     });
-  });
 
-  _socketService.onDisconnect((_) {
-    print('❌ HomeScreen: Socket disconnected');
-    setState(() {
-      error = 'Socket disconnected';
+    _socketService.onDisconnect((_) {
+      print('❌ HomeScreen: Socket disconnected');
+      setState(() {
+        error = 'Socket disconnected';
+      });
     });
-  });
 
-  _socketService.on('newQuotation', (data) {
-    print('📥 HomeScreen: New quotation received');
-    print('Data: $data');
-    _loadQuotations();
-  });
+    _socketService.on('newQuotation', (data) {
+      print('� HomeScreen: New quotation received');
+      print('Data: $data');
+      _loadQuotations();
+    });
 
-  _socketService.on('quotationUpdated', (data) {
-    print('🔄 HomeScreen: Quotation updated');
-    print('Data: $data');
-    _loadQuotations();
-  });
+    _socketService.on('quotationUpdated', (data) {
+      print('� HomeScreen: Quotation updated');
+      print('Data: $data');
+      _loadQuotations();
+    });
 
-  _socketService.on('quotationDeleted', (data) {
-    print('🗑️ HomeScreen: Quotation deleted');
-    print('Data: $data');
-    _loadQuotations();
-  });
-}
-
-@override
-void dispose() {
-  _socketService.off('newQuotation');
-  _socketService.off('quotationUpdated');
-  _socketService.off('quotationDeleted');
-  super.dispose();
-}
-
-Future<void> _openMap(String addressToOpen) async {
-    final Uri googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeFull(addressToOpen)}');
-    
-    if (await canLaunchUrl(googleMapsUrl)) {
-      await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-    } else {
-      print('Could not launch $googleMapsUrl');
-    }
+    _socketService.on('quotationDeleted', (data) {
+      print('�️ HomeScreen: Quotation deleted');
+      print('Data: $data');
+      _loadQuotations();
+    });
   }
 
-  // The
-
+  @override
+  void dispose() {
+    _socketService.off('newQuotation');
+    _socketService.off('quotationUpdated');
+    _socketService.off('quotationDeleted');
+    super.dispose();
+  }
 
   Future<void> _loadQuotations() async {
-  
     if (!mounted) return;
 
     setState(() {
@@ -94,12 +80,10 @@ Future<void> _openMap(String addressToOpen) async {
       error = '';
     });
 
-  
-
     try {
       print('Starting to load quotations');
       final data = await _apiService.getQuotationsWithDebug();
-      
+
       if (!mounted) return;
 
       data.sort((a, b) {
@@ -107,7 +91,7 @@ Future<void> _openMap(String addressToOpen) async {
         final dateB = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime(1900);
         return dateB.compareTo(dateA); // Newest first
       });
-      
+
       print('Quotations loaded successfully: ${data.length} items');
       setState(() {
         quotations = data;
@@ -116,7 +100,7 @@ Future<void> _openMap(String addressToOpen) async {
     } catch (e) {
       print('Error in _loadQuotations: $e');
       if (!mounted) return;
-      
+
       setState(() {
         error = e.toString();
         isLoading = false;
@@ -124,65 +108,36 @@ Future<void> _openMap(String addressToOpen) async {
     }
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.amber,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('DenverBartenders'),
-        backgroundColor: Colors.black87,
-        actions: [
-          Icon(
-          _socketService.isConnected ? Icons.cloud_done : Icons.cloud_off,
-          color: _socketService.isConnected ? Colors.green : Colors.red,
-        ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: isLoading ? null : _loadQuotations,
-          ),
-        ],
+      appBar: CustomAppBar(
+         title: 'DenverBartenders',
+        socketService: _socketService,
+        onRefresh: _loadQuotations,
+        isLoading: isLoading,
       ),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
-    print('Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
-    
-  Color _getStatusColor(String state) {
-  switch (state.toLowerCase()) {
-    case 'approved':
-      return Colors.green;
-    case 'rejected':
-      return Colors.red;
-    case 'in_progress':
-      return Colors.blue;
-    case 'pending':
-    default:
-      return Colors.amber; // Yellow indicator for pending state
-  }
-}
+    print(
+        'Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
 
+    Color _getStatusColor(String state) {
+      switch (state.toLowerCase()) {
+        case 'approved':
+          return Colors.green;
+        case 'rejected':
+          return Colors.red;
+        case 'in_progress':
+          return Colors.blue;
+        case 'pending':
+        default:
+          return Colors.amber; // Yellow indicator for pending state
+      }
+    }
 
     if (isLoading) {
       return const Center(
@@ -258,146 +213,187 @@ Future<void> _openMap(String addressToOpen) async {
         itemBuilder: (context, index) {
           final quotation = quotations[index];
           final eventDate = DateTime.tryParse(quotation['eventDate'] ?? '')
-              ?.toString().split(' ')[0] ?? 'No date';
+                  ?.toString()
+                  .split(' ')[0] ??
+              'No date';
           final createdAt = DateTime.tryParse(quotation['createdAt'] ?? '')
-              ?.toString().split(' ')[0] ?? 'No date';
+                  ?.toString()
+                  .split(' ')[0] ??
+              'No date';
 
-          // Replace the Card return statement in your ListView.builder with this:
-return Card(
-  margin: const EdgeInsets.all(8.0),
-  color: Colors.black87,
-  child: ExpansionTile(
-    backgroundColor: Colors.black87,
-    collapsedBackgroundColor: Colors.black87,
-    title: Row(
-      children: [
-        // Status Indicator
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: _getStatusColor(quotation['state'] ?? 'pending'),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: _getStatusColor(quotation['state'] ?? 'pending').withOpacity(0.3),
-                blurRadius: 4,
-                spreadRadius: 2,
+          return Card(
+            margin: const EdgeInsets.all(8.0),
+            color: Colors.black87,
+            child: ExpansionTile(
+              backgroundColor: Colors.black87,
+              collapsedBackgroundColor: Colors.black87,
+              title: Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(quotation['state'] ?? 'pending'),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getStatusColor(
+                                  quotation['state'] ?? 'pending')
+                              .withOpacity(0.3),
+                          blurRadius: 4,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      quotation['clientName'] ?? 'No name',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12), // Spacing between indicator and text
-        Expanded(
-          child: Text(
-            quotation['clientName'] ?? 'No name',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.amber,
-            ),
-          ),
-        ),
-      ],
-    ),
-    subtitle: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Company: ${quotation['companyName'] ?? 'N/A'}',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        Row(
-          children: [
-            Text(
-              'Created: $createdAt ',
-              style: const TextStyle(color: Colors.white70),
-            ),
-             const SizedBox(width: 8), // Added spacing
-            Text(
-              timeago.format(DateTime.parse(quotation['createdAt'] ?? '')),
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-    children: [
-      Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoRow('Event Date', eventDate),
-            _buildInfoRow('Time', '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}'),
-            _buildInfoRow('Guests', '${quotation['numberOfGuests']?.toString() ?? 'N/A'}'),
-
-            const SizedBox(height: 8),
-            const Text(
-              'Services Requested:',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.amber,
-              ),
-            ),
-            ...List<Widget>.from(
-              (quotation['servicesRequested'] as List? ?? []).map(
-                (service) => Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 4),
-                  child: Text(
-                    '• $service',
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Company: ${quotation['companyName'] ?? 'N/A'}',
                     style: const TextStyle(color: Colors.white70),
                   ),
-                ),
-              ),
-            ),
-           const Text(
-             'Address:',
-               style: TextStyle(
-                fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-          ),
-        ),
-        InkWell(
-         onTap: () => _openMap(quotation['address'] ?? 'No address'),
-          child: Text(
-           quotation['address'] ?? 'No address',
-            style: const TextStyle(
-             color: Colors.white70,  // Changed to blue to indicate it's clickable
-              decoration: TextDecoration.underline,  // Added underline
-              decorationColor: Colors.white70,  // Underline color
-              decorationStyle: TextDecorationStyle.dashed,  // dotted underline
-              decorationThickness: 1,  // Thickness of the underline
-              height: 3,  // Line height
-            
-
-           ),
+                  Row(
+                    children: [
+                      Text(
+                        'Received: $createdAt ',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        timeago.format(
+                            DateTime.parse(quotation['createdAt'] ?? '')),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                   ),
-        ),
-             const SizedBox(height: 4),
-                        const Text(
-                          'Notes:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
-                          ),
+                ],
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Event Information Section
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.amber.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16, top: 4),
-                          child: Text(
-                            quotation['notes'] ?? 'No notes',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Event Information',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            InfoRow(label: 'Event Date', value: eventDate),
+                            InfoRow(
+                              label: 'Time',
+                              value:
+                                  '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}',
+                            ),
+                            InfoRow(
+                              label: 'Guests',
+                              value: '${quotation['numberOfGuests']?.toString() ?? 'N/A'}',
+                            ),
+                            InfoRow(
+                              label: 'Services Requested',
+                              value: quotation['servicesRequested'],
+                              type: 'services',
+                            ),
+                          ],
                         ),
-          ],
-        ),
-      ),
-    ],
-  ),
-);
+                      ),
+                      const SizedBox(height: 16),
+                      // Contact Information Section
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.amber.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Contact Information',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            InfoRow(
+                              label: 'Phone',
+                              value: quotation['phone'] ?? 'No phone',
+                              type: 'phone',
+                            ),
+                            InfoRow(
+                              label: 'Email',
+                              value: quotation['email'] ?? 'No email',
+                              type: 'email',
+                            ),
+                            InfoRow(
+                              label: 'Address',
+                              value: quotation['address'] ?? 'No address',
+                              type: 'map',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Notes Section
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.amber.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InfoRow(
+                              label: 'Notes',
+                              value: quotation['notes'] ?? 'No notes',
+                              type: 'notes',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );

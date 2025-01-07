@@ -57,6 +57,8 @@
     <string>http</string>
     <string>maps</string>
     <string>google-maps</string>
+	<string>tel</string>
+    <string>mailto</string>
 </array>
 </dict>
 </plist>
