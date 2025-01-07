@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-
 class InfoRow extends StatelessWidget {
   final String label;
   final dynamic value;
@@ -14,8 +13,7 @@ class InfoRow extends StatelessWidget {
     this.type,
   }) : super(key: key);
 
-
-Future<void> _openMap(String addressToOpen) async {
+  Future<void> _openMap(String addressToOpen) async {
     final Uri googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeFull(addressToOpen)}');
     
     if (await canLaunchUrl(googleMapsUrl)) {
@@ -24,52 +22,78 @@ Future<void> _openMap(String addressToOpen) async {
       print('Could not launch $googleMapsUrl');
     }
   }
-Future<void> _makePhoneCall(String phoneNumber) async {
-  final Uri launchUri = Uri(
-    scheme: 'tel',
-    path: phoneNumber,
-  );
-  if (await canLaunchUrl(launchUri)) {
-    await launchUrl(launchUri);
-  } else {
-    throw 'Could not launch $launchUri';
+
+  Future<void> _handlePhoneContact(BuildContext context, String phoneNumber) async {
+    final cleanPhoneNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.call),
+                title: const Text('Call'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri callUri = Uri(
+                    scheme: 'tel',
+                    path: cleanPhoneNumber,
+                  );
+                  if (await canLaunchUrl(callUri)) {
+                    await launchUrl(callUri);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message),
+                title: const Text('Message'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final Uri smsUri = Uri(
+                    scheme: 'sms',
+                    path: cleanPhoneNumber,
+                  );
+                  if (await canLaunchUrl(smsUri)) {
+                    await launchUrl(smsUri);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
-}
 
-// Function to send an email
-Future<void> _sendEmail(String email) async {
-  final Uri launchUri = Uri(
-    scheme: 'mailto',
-    path: email,
-  );
-  if (await canLaunchUrl(launchUri)) {
-    await launchUrl(launchUri);
-  } else {
-    throw 'Could not launch $launchUri';
+  Future<void> _sendEmail(String email) async {
+    final Uri launchUri = Uri(
+      scheme: 'mailto',
+      path: email,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      throw 'Could not launch $launchUri';
+    }
   }
-}
 
- 
-
-  Future<void> _handleTap() async {
+  Future<void> _handleTap(BuildContext context) async {
     Uri? launchUri;
     
     switch (type) {
       case 'phone':
-        launchUri = Uri(
-          scheme: 'tel',
-          path: value.replaceAll(RegExp(r'[^\d+]'), ''), // Clean phone number
-        );
-        break;
+        return _handlePhoneContact(context, value.toString());
       case 'email':
         launchUri = Uri(
           scheme: 'mailto',
-          path: value,
+          path: value.toString(),
         );
         break;
       case 'map':
-        // For iOS, we use Apple Maps
-        final encodedAddress = Uri.encodeComponent(value);
+        final encodedAddress = Uri.encodeComponent(value.toString());
         launchUri = Uri.parse('http://maps.apple.com/?address=$encodedAddress');
         break;
     }
@@ -109,9 +133,9 @@ Future<void> _sendEmail(String email) async {
               )
             else
               InkWell(
-                onTap: type == 'map' ? _handleTap : null,
+                onTap: type == 'map' ? () => _handleTap(context) : null,
                 child: Text(
-                  value,
+                  value.toString(),
                   style: TextStyle(
                     color: Colors.white70,
                     decoration: type == 'map' ? TextDecoration.underline : null,
@@ -138,9 +162,9 @@ Future<void> _sendEmail(String email) async {
           ),
           type != null
               ? InkWell(
-                  onTap: _handleTap,
+                  onTap: () => _handleTap(context),
                   child: Text(
-                    value,
+                    value.toString(),
                     style: const TextStyle(
                       color: Colors.white70,
                       decoration: TextDecoration.underline,
@@ -150,7 +174,7 @@ Future<void> _sendEmail(String email) async {
                   ),
                 )
               : Text(
-                  value,
+                  value.toString(),
                   style: const TextStyle(color: Colors.white70),
                 ),
         ],

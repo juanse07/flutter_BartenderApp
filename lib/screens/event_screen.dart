@@ -76,6 +76,10 @@ void dispose() {
 }
 
 
+void configureFutureTimeMessages() {
+  timeago.setLocaleMessages('en', timeago.EnMessages());
+}
+
 
   Future<void> _loadQuotations() async {
     if (!mounted) return;
@@ -113,26 +117,7 @@ void dispose() {
     }
   }
 
-  // Widget _buildInfoRow(String label, String value) {
-  //   return Padding(
-  //     padding: const EdgeInsets.only(bottom: 8.0),
-  //     child: Row(
-  //       children: [
-  //         Text(
-  //           '$label: ',
-  //           style: const TextStyle(
-  //             fontWeight: FontWeight.bold,
-  //             color: Colors.amber,
-  //           ),
-  //         ),
-  //         Text(
-  //           value,
-  //           style: const TextStyle(color: Colors.white70),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +282,9 @@ void dispose() {
                       const SizedBox(width: 8),
                       Text(
                         timeago.format(
-                            DateTime.parse(quotation['eventDate'] ?? '')),
+                            DateTime.parse(quotation['eventDate'] ?? ''),
+                            locale: 'en_short',
+                            allowFromNow: true),
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 10,
