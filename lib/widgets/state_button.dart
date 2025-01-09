@@ -99,23 +99,30 @@ class QuotationStateButton extends StatelessWidget {
     }
   }
 
+ 
+  
+
   @override
   Widget build(BuildContext context) {
-    final bool isEnabled = currentState.toLowerCase() != 'approved';
+      final bool isEnabled = currentState.toLowerCase() != 'approved';
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _getButtonColor(currentState),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          disabledForegroundColor: Colors.white.withOpacity(0.5),
-          disabledBackgroundColor: _getButtonColor(currentState).withOpacity(0.5),
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(top: 16),
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _getButtonColor(currentState),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        disabledForegroundColor: Colors.white.withOpacity(0.5),
+        disabledBackgroundColor: _getButtonColor(currentState).withOpacity(0.5),
+      ),
+      onPressed: isEnabled ? () => _handleStateUpdate(context) : null,
+      child: IconTheme(
+        data: const IconThemeData(
+          color: Colors.white, // Set icon color to white
         ),
-        onPressed: isEnabled ? () => _handleStateUpdate(context) : null,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -130,6 +137,43 @@ class QuotationStateButton extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
+   
   }
+
 }
+
+
+
+ // final bool isEnabled = currentState.toLowerCase() != 'approved';
+
+    // return Container(
+    //   width: double.infinity,
+    //   margin: const EdgeInsets.only(top: 16),
+    //   padding: const EdgeInsets.symmetric(horizontal: 16),
+    //   child: ElevatedButton(
+    //     style: ElevatedButton.styleFrom(
+    //       backgroundColor: _getButtonColor(currentState),
+    //       foregroundColor: Colors.white,
+    //       padding: const EdgeInsets.symmetric(vertical: 12),
+    //       disabledForegroundColor: Colors.white.withOpacity(0.5),
+    //       disabledBackgroundColor: _getButtonColor(currentState).withOpacity(0.5),
+    //     ),
+    //     onPressed: isEnabled ? () => _handleStateUpdate(context) : null,
+    //     child: Row(
+          
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         Icon(_getButtonIcon(currentState)),
+    //         const SizedBox(width: 8),
+    //         Text(
+    //           _getButtonText(currentState),
+    //           style: const TextStyle(
+    //             fontWeight: FontWeight.bold,
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    // );

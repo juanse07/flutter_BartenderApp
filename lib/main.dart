@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Bottom Navigation Demo',
+      title: 'DenverBartenders Navigation',
       theme: ThemeData(
         primarySwatch: Colors.amber,
         scaffoldBackgroundColor: Colors.black87,
@@ -26,11 +26,14 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.black87,
           selectedItemColor: Colors.amber,
           unselectedItemColor: Colors.white70,
+
       ),
       textTheme: const TextTheme(
           bodyLarge: TextStyle(color: Colors.white),
           bodyMedium: TextStyle(color: Colors.white),
         ),
+
+       
       ),
       home: const NavigationScreen(),
     );
