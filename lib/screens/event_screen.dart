@@ -6,6 +6,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/buildInfoRow.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/state_button.dart';
 
 
 class EventScreen extends StatefulWidget {
@@ -91,7 +92,9 @@ void configureFutureTimeMessages() {
 
     try {
       print('Starting to load quotations');
-      final data = await _apiService.getQuotationsWithDebug();
+     final data = await _apiService.getQuotationsWithDebugbyState();
+     
+       final filteredData = data.where((q) => q['state']?.toLowerCase() == 'answered').toList();
       
       if (!mounted) return;
 
@@ -101,9 +104,9 @@ void configureFutureTimeMessages() {
         return dateA.compareTo(dateB); // Oldest first
       });
       
-      print('Quotations loaded successfully: ${data.length} items');
+      print('Quotations loaded successfully: ${filteredData.length} items');
       setState(() {
-        quotations = data;
+        quotations = filteredData;
         isLoading = false;
       });
     } catch (e) {
@@ -137,7 +140,7 @@ void configureFutureTimeMessages() {
 
   Color _getStatusColor(String state) {
   switch (state.toLowerCase()) {
-    case 'approved':
+    case 'answered':
       return Colors.green;
     case 'rejected':
       return Colors.red;
@@ -145,7 +148,7 @@ void configureFutureTimeMessages() {
       return Colors.blue;
     case 'pending':
     default:
-      return Colors.amber; // Yellow indicator for pending state
+      return Colors.grey; // Yellow indicator for pending state
   }
 }
 
@@ -397,6 +400,12 @@ void configureFutureTimeMessages() {
                             ),
                           ],
                         ),
+                      ),
+                        QuotationStateButton(
+                         quotationId: quotation['_id'],
+                           currentState: quotation['state'],
+                            apiService: _apiService,
+                            onUpdateComplete: _loadQuotations,
                       ),
                     ],
                   ),

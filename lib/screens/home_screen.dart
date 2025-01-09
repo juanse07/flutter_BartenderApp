@@ -6,6 +6,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/buildInfoRow.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/state_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -82,7 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       print('Starting to load quotations');
-      final data = await _apiService.getQuotationsWithDebug();
+     final data = await _apiService.getQuotationsWithDebugbyState();
+
+       final filteredData = data.where((q) => q['state']?.toLowerCase() == 'pending').toList();
 
       if (!mounted) return;
 
@@ -92,9 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
         return dateB.compareTo(dateA); // Newest first
       });
 
-      print('Quotations loaded successfully: ${data.length} items');
+      print('Quotations loaded successfully: ${filteredData.length} items');
       setState(() {
-        quotations = data;
+        quotations = filteredData;
         isLoading = false;
       });
     } catch (e) {
@@ -127,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Color _getStatusColor(String state) {
       switch (state.toLowerCase()) {
-        case 'approved':
+        case 'answered':
           return Colors.green;
         case 'rejected':
           return Colors.red;
@@ -135,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Colors.blue;
         case 'pending':
         default:
-          return Colors.amber; // Yellow indicator for pending state
+          return Colors.grey; // Yellow indicator for pending state
       }
     }
 
@@ -387,6 +390,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
+                      ),
+                      QuotationStateButton(
+                         quotationId: quotation['_id'],
+                           currentState: quotation['state'],
+                            apiService: _apiService,
+                            onUpdateComplete: _loadQuotations,
                       ),
                     ],
                   ),
