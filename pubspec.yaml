@@ -39,6 +39,7 @@ dependencies:
   flutter_dotenv: ^5.0.2
   timeago: ^3.7.0
   url_launcher: ^6.3.1
+  permission_handler: ^10.1.0
   
   
 
