@@ -1,6 +1,6 @@
 class Quotation {
   final String id;
-  final String clientName;
+  final String conntactName;
   final String companyName;
   final DateTime eventDate;
   final String startTime;
@@ -11,7 +11,7 @@ class Quotation {
 
   Quotation({
     required this.id,
-    required this.clientName,
+    required this.contactName,
     required this.companyName,
     required this.eventDate,
     required this.startTime,
@@ -24,7 +24,7 @@ class Quotation {
   factory Quotation.fromJson(Map<String, dynamic> json) {
     return Quotation(
       id: json['_id'],
-      clientName: json['clientName'],
+      contactName: json['contactName'],
       companyName: json['companyName'],
       eventDate: DateTime.parse(json['eventDate']),
       startTime: json['startTime'],

@@ -7,10 +7,10 @@ class ApiService {
   
   Future<List<dynamic>> getQuotationsWithDebug() async {
     try {
-      print('Attempting to connect to: $baseUrl/bar-service-quotations');
+      print('Attempting to connect to: $baseUrl/new-estimate');
       
       final response = await http.get(
-        Uri.parse('$baseUrl/bar-service-quotations'),
+        Uri.parse('$baseUrl/new-estimate'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -54,13 +54,13 @@ class ApiService {
     print('� Attempting to update quotation state');
     print('� Quotation ID: $id');
     print('� New State: $newState');
-    print('� Endpoint: ${baseUrl}/bar-service-quotations/$id');
+    print('� Endpoint: ${baseUrl}/new-estimate/$id');
 
     final requestBody = {'state': newState};
     print('� Request Body: ${jsonEncode(requestBody)}');
 
     final response = await http.patch(
-      Uri.parse('${baseUrl}/bar-service-quotations/$id'),
+      Uri.parse('${baseUrl}/new-estimate/$id'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(requestBody),
     );
@@ -92,7 +92,7 @@ class ApiService {
   Future<List<dynamic>> getQuotationsWithDebugbyState({String? state}) async {
     try {
       // Build the URL with the optional `state` query parameter
-      final uri = Uri.parse('$baseUrl/bar-service-quotations')
+      final uri = Uri.parse('$baseUrl/new-estimate')
           .replace(queryParameters: state != null ? {'state': state} : null);
 
       print('Attempting to connect to: $uri');

@@ -260,7 +260,7 @@ void configureFutureTimeMessages() {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      quotation['clientName'] ?? 'No name',
+                      quotation['contactName'] ?? 'No name',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.amber,
@@ -273,7 +273,8 @@ void configureFutureTimeMessages() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Company: ${quotation['companyName'] ?? 'N/A'}',
+                  'Event Type: ${quotation['eventType'] ?? 'N/A'}',
+
                     style: const TextStyle(color: Colors.white70),
                   ),
                   Row(
@@ -327,18 +328,17 @@ void configureFutureTimeMessages() {
                             InfoRow(label: 'Event Date', value: eventDate),
                             InfoRow(
                               label: 'Time',
-                              value:
-                                  '${quotation['startTime'] ?? 'N/A'} - ${quotation['endTime'] ?? 'N/A'}',
+                               value: ' ${quotation['eventTime'].toString() ?? 'N/A'}',
                             ),
                             InfoRow(
                               label: 'Guests',
-                              value: '${quotation['numberOfGuests']?.toString() ?? 'N/A'}',
+                              value: '${quotation['guestCount']?.toString() ?? 'N/A'}',
                             ),
-                            InfoRow(
-                              label: 'Services Requested',
-                              value: quotation['servicesRequested'],
-                              type: 'services',
-                            ),
+                            // InfoRow(
+                            //   label: 'Services Requested',
+                            //   value: quotation['servicesRequested'],
+                            //   type: 'services',
+                            // ),
                           ],
                         ),
                       ),
@@ -365,17 +365,17 @@ void configureFutureTimeMessages() {
                             const SizedBox(height: 12),
                             InfoRow(
                               label: 'Phone',
-                              value: quotation['phone'] ?? 'No phone',
+                              value: quotation['contactPhone'] ?? 'No phone',
                               type: 'phone',
                             ),
                             InfoRow(
                               label: 'Email',
-                              value: quotation['email'] ?? 'No email',
+                              value: quotation['contactEmail'] ?? 'No email',
                               type: 'email',
                             ),
                             InfoRow(
                               label: 'Address',
-                              value: quotation['address'] ?? 'No address',
+                              value: quotation['eventLocation'] ?? 'No address',
                               type: 'map',
                             ),
                           ],
