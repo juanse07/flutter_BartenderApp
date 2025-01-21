@@ -104,7 +104,7 @@ void configureFutureTimeMessages() {
         return dateA.compareTo(dateB); // Oldest first
       });
       
-      print('Quotations loaded successfully: ${filteredData.length} items');
+      // print('Quotations loaded successfully: ${filteredData.length} items');
       setState(() {
         quotations = filteredData;
         isLoading = false;
@@ -126,7 +126,7 @@ void configureFutureTimeMessages() {
   Widget build(BuildContext context) {
     return Scaffold(
      appBar: CustomAppBar(
-         title: 'DenverBartenders',
+         title: '',
         socketService: _socketService,
         onRefresh: _loadQuotations,
         isLoading: isLoading,
@@ -328,7 +328,7 @@ void configureFutureTimeMessages() {
                             InfoRow(label: 'Event Date', value: eventDate),
                             InfoRow(
                               label: 'Time',
-                               value: ' ${quotation['eventTime'].toString() ?? 'N/A'}',
+                               value: '${quotation['eventTime'].toString() ?? 'N/A'}',
                             ),
                             InfoRow(
                               label: 'Guests',

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../services/socket_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:url_launcher/url_launcher.dart';
+
+import '../services/api_service.dart';
+import '../services/socket_service.dart';
 import '../widgets/buildInfoRow.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/state_button.dart';
@@ -31,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _initializeSocketListeners() {
-    print('� Initializing socket listeners...');
+    print(' Initializing socket listeners...');
     _socketService.onConnect((_) {
       print('✅ HomeScreen: Socket connected');
       setState(() {
@@ -47,19 +46,19 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     _socketService.on('newQuotation', (data) {
-      print('� HomeScreen: New quotation received');
+      print('HomeScreen: New quotation received');
       print('Data: $data');
       _loadQuotations();
     });
 
     _socketService.on('quotationUpdated', (data) {
-      print('� HomeScreen: Quotation updated');
+      print('HomeScreen: Quotation updated');
       print('Data: $data');
       _loadQuotations();
     });
 
     _socketService.on('quotationDeleted', (data) {
-      print('�️ HomeScreen: Quotation deleted');
+      print(' HomeScreen: Quotation deleted');
       print('Data: $data');
       _loadQuotations();
     });
@@ -83,9 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       print('Starting to load quotations');
-     final data = await _apiService.getQuotationsWithDebugbyState();
+      final data = await _apiService.getQuotationsWithDebugbyState();
 
-       final filteredData = data.where((q) => q['state']?.toLowerCase() == 'pending').toList();
+      final filteredData =
+          data.where((q) => q['state']?.toLowerCase() == 'pending').toList();
 
       if (!mounted) return;
 
@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return dateB.compareTo(dateA); // Newest first
       });
 
-      print('Quotations loaded successfully: ${filteredData.length} items');
+      // print('Quotations loaded successfully: ${filteredData.length} items');
       setState(() {
         quotations = filteredData;
         isLoading = false;
@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-         title: 'DenverBartenders',
+        title: '',
         socketService: _socketService,
         onRefresh: _loadQuotations,
         isLoading: isLoading,
@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print(
         'Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
 
-    Color _getStatusColor(String state) {
+    Color getStatusColor(String state) {
       switch (state.toLowerCase()) {
         case 'answered':
           return Colors.green;
@@ -236,12 +236,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: _getStatusColor(quotation['state'] ?? 'pending'),
+                      color: getStatusColor(quotation['state'] ?? 'pending'),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: _getStatusColor(
-                                  quotation['state'] ?? 'pending')
+                          color: getStatusColor(quotation['state'] ?? 'pending')
                               .withOpacity(0.3),
                           blurRadius: 4,
                           spreadRadius: 2,
@@ -297,8 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Event Information Section
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.amber.withOpacity(0.3)),
+                          border:
+                              Border.all(color: Colors.amber.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.all(12),
@@ -317,12 +316,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             InfoRow(label: 'Event Date', value: eventDate),
                             InfoRow(
                               label: 'Time',
-                              value: ' ${quotation['eventTime'].toString() ?? 'N/A'}',
-                                  
+                              value:
+                                  ' ${quotation['eventTime'].toString() ?? 'N/A'}',
                             ),
                             InfoRow(
                               label: 'Guests',
-                              value: '${quotation['guestCount']?.toString() ?? 'N/A'}',
+                              value:
+                                  quotation['guestCount']?.toString() ?? 'N/A',
                             ),
                             // InfoRow(
                             //   label: 'Services Requested',
@@ -336,8 +336,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Contact Information Section
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.amber.withOpacity(0.3)),
+                          border:
+                              Border.all(color: Colors.amber.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.all(12),
@@ -375,8 +375,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Notes Section
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.amber.withOpacity(0.3)),
+                          border:
+                              Border.all(color: Colors.amber.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.all(12),
@@ -392,10 +392,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       QuotationStateButton(
-                         quotationId: quotation['_id'],
-                           currentState: quotation['state'],
-                            apiService: _apiService,
-                            onUpdateComplete: _loadQuotations,
+                        quotationId: quotation['_id'],
+                        currentState: quotation['state'],
+                        apiService: _apiService,
+                        onUpdateComplete: _loadQuotations,
                       ),
                     ],
                   ),

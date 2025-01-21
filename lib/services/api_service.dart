@@ -1,14 +1,15 @@
 import 'dart:convert';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
   final String baseUrl = dotenv.env['API_URL'] ?? 'http://localhost:8888';
-  
+
   Future<List<dynamic>> getQuotationsWithDebug() async {
     try {
       print('Attempting to connect to: $baseUrl/new-estimate');
-      
+
       final response = await http.get(
         Uri.parse('$baseUrl/new-estimate'),
         headers: {
@@ -30,7 +31,7 @@ class ApiService {
         if (response.body.isEmpty) {
           throw Exception('Empty response received');
         }
-        
+
         try {
           final data = json.decode(response.body) as List;
           print('Successfully decoded data: ${data.length} items');
@@ -50,44 +51,43 @@ class ApiService {
   }
 
   Future<void> updateQuotationState(String id, String newState) async {
-  try {
-    print('� Attempting to update quotation state');
-    print('� Quotation ID: $id');
-    print('� New State: $newState');
-    print('� Endpoint: ${baseUrl}/new-estimate/$id');
+    try {
+      print('DEBUG:  Attempting to update quotation state');
+      print(' Quotation ID: $id');
+      print(' New State: $newState');
+      print(' Endpoint: $baseUrl/new-estimate/$id');
 
-    final requestBody = {'state': newState};
-    print('� Request Body: ${jsonEncode(requestBody)}');
+      final requestBody = {'state': newState};
+      print(' Request Body: ${jsonEncode(requestBody)}');
 
-    final response = await http.patch(
-      Uri.parse('${baseUrl}/new-estimate/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(requestBody),
-    );
+      final response = await http.patch(
+        Uri.parse('$baseUrl/new-estimate/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
 
-    print('� Response Status Code: ${response.statusCode}');
-    print('� Response Body: ${response.body}');
+      print(' Response Status Code: ${response.statusCode}');
+      print(' Response Body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      print('✅ Quotation state updated successfully');
-      return;
+      if (response.statusCode == 200) {
+        print('DEBUG:✅ Quotation state updated successfully');
+        return;
+      }
+
+      // Log error details if status code is not 200
+      print('⚠️ Error: Non-200 status code received');
+      print('⚠️ Status Code: ${response.statusCode}');
+      print('⚠️ Response Body: ${response.body}');
+
+      throw Exception(
+          'Failed to update quotation state. Status: ${response.statusCode}, Body: ${response.body}');
+    } catch (e) {
+      print('❌ Failed to update quotation state');
+      print('❌ Error details: $e');
+      print('❌ Stack trace: ${StackTrace.current}');
+      rethrow;
     }
-
-    // Log error details if status code is not 200
-    print('⚠️ Error: Non-200 status code received');
-    print('⚠️ Status Code: ${response.statusCode}');
-    print('⚠️ Response Body: ${response.body}');
-    
-    throw Exception(
-      'Failed to update quotation state. Status: ${response.statusCode}, Body: ${response.body}'
-    );
-  } catch (e) {
-    print('❌ Failed to update quotation state');
-    print('❌ Error details: $e');
-    print('❌ Stack trace: ${StackTrace.current}');
-    throw e;
   }
-}
 
   Future<List<dynamic>> getQuotationsWithDebugbyState({String? state}) async {
     try {
@@ -126,6 +126,4 @@ class ApiService {
       rethrow;
     }
   }
-
-
 }

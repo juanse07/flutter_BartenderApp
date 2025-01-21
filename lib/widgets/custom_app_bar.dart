@@ -18,6 +18,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      leading: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 60,
+          width: 120,
+          child: Image.asset('assets/images/denverbartendersSign.png',
+          fit: BoxFit.contain,
+         ),
+       ),
+      ),
+      leadingWidth: 150,
       title: Text(title),
       backgroundColor: Colors.black87,
       actions: [

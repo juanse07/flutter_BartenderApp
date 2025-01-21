@@ -1,13 +1,21 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'screens/home_screen.dart';
+
 import 'screens/event_screen.dart';
+import 'screens/home_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
+  final notificationService = NotificationService();
+  await notificationService.showNotification(
+    title: 'Test Notification',
+    body: 'This is a test notification',
+  );
+
   runApp(const MyApp());
 }
 
@@ -26,14 +34,11 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.black87,
           selectedItemColor: Colors.amber,
           unselectedItemColor: Colors.white70,
-
-      ),
-      textTheme: const TextTheme(
+        ),
+        textTheme: const TextTheme(
           bodyLarge: TextStyle(color: Colors.white),
           bodyMedium: TextStyle(color: Colors.white),
         ),
-
-       
       ),
       home: const NavigationScreen(),
     );
@@ -49,7 +54,7 @@ class NavigationScreen extends StatefulWidget {
 
 class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
-  
+
   static const List<Widget> _screens = <Widget>[
     HomeScreen(),
     EventScreen(),

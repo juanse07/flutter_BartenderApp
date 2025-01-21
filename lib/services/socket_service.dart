@@ -1,6 +1,7 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+
 import 'notification_service.dart';
 
 class SocketService {
@@ -9,19 +10,18 @@ class SocketService {
 
   SocketService._internal() {
     _socket = IO.io(
-      dotenv.env['API_URL'] ?? 'http://localhost:8888',
-      IO.OptionBuilder()
-        .setTransports(['websocket'])
-        .setPath('/socket.io/')
-        .enableAutoConnect()
-        .build()
-    );
+        dotenv.env['API_URL'] ?? 'http://localhost:8888',
+        IO.OptionBuilder()
+            .setTransports(['websocket'])
+            .setPath('/socket.io/')
+            .enableAutoConnect()
+            .build());
   }
 
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
 
-    String formatDate(String dateStr) {
+  String formatDate(String dateStr) {
     try {
       final date = DateTime.parse(dateStr);
       return DateFormat('MMM d, y').format(date); // Oct 25, 2023
@@ -56,52 +56,54 @@ class SocketService {
       'quotationDeleted': 'deleteBarServiceQuotation'
     };
 
-   final backendEvent = eventMap[event] ?? event;
-_socket.on(backendEvent, (data) async {
-  print('📥 Received $backendEvent: $data');
-  
-  try {
-    if (backendEvent == 'newBarServiceQuotation') {
-      print('🔔 Attempting to show notification for new quotation');
-      if (data is Map<String, dynamic>) {
-        String clientName = data['clientName'] ?? 'Unknown';
-        String companyName = data['companyName'] ?? 'N/A';
-         String eventDate = formatDate(data['eventDate'] ?? 'N/A');
-        String startTime = data['startTime'] ?? 'N/A';
-        String endTime = data['endTime'] ?? 'N/A';
-        int numberOfGuests = data['numberOfGuests'] ?? 0;
+    final backendEvent = eventMap[event] ?? event;
+    _socket.on(backendEvent, (data) async {
+      print('ReceivedBkc $backendEvent: $data');
 
-        
-        await _notificationService.showNotification(
-          title: 'NSC from: $clientName',
-          body: 'Date: $eventDate\nTime: $startTime-$endTime\nGuests: $numberOfGuests\nAprox',
-        );
-        print('✅ Notification sent for new quotation');
-      } else {
-        print('⚠️ Invalid data format received: $data');
-        await _notificationService.showNotification(
-          title: 'New Quotation',
-          body: 'A new quotation request has been received',
-        );
+      try {
+        if (backendEvent == 'newBarServiceQuotation') {
+          print(' Attempting to show notification for new quotation');
+          if (data is Map<String, dynamic>) {
+            String contactName = data['contactName']?.toString() ?? 'Unknown';
+            String eventType = data['eventType']?.toString() ?? 'N/A';
+            String eventDate =
+                formatDate(data['eventDate']?.toString() ?? 'N/A');
+            String eventTime = data['eventTime']?.toString() ?? 'N/A';
+            String guestCount = data['guestCount'] is int
+                ? data['guestCount'].toString()
+                : data['guestCount']?.toString() ?? 'N/A';
+
+            await _notificationService.showNotification(
+              title: 'NSC from: $contactName',
+              body:
+                  'Date: $eventDate\nTime: $eventTime\nGuests: $guestCount\nAprox',
+            );
+            print('Notification sent for new quotation');
+          } else {
+            print(' Invalid data format received: $data');
+            await _notificationService.showNotification(
+              title: 'New Quotation',
+              body: 'A new quotation request has been received',
+            );
+          }
+        } else if (backendEvent == 'updateBarServiceQuotation') {
+          await _notificationService.showNotification(
+            title: 'Quotation Updated',
+            body: 'A quotation has been modified',
+          );
+        } else if (backendEvent == 'deleteBarServiceQuotation') {
+          await _notificationService.showNotification(
+            title: 'Quotation Deleted',
+            body: 'A quotation has been removed',
+          );
+        }
+      } catch (e) {
+        print('Error handling socket event: $e');
+        print('Stack trace: ${StackTrace.current}');
       }
-    } else if (backendEvent == 'updateBarServiceQuotation') {
-      await _notificationService.showNotification(
-        title: 'Quotation Updated',
-        body: 'A quotation has been modified',
-      );
-    } else if (backendEvent == 'deleteBarServiceQuotation') {
-      await _notificationService.showNotification(
-        title: 'Quotation Deleted',
-        body: 'A quotation has been removed',
-      );
-    }
-  } catch (e) {
-    print('❌ Error handling socket event: $e');
-    print('Stack trace: ${StackTrace.current}');
-  }
-  
-  handler(data);
-});
+
+      handler(data);
+    });
   }
 
   void off(String event) {

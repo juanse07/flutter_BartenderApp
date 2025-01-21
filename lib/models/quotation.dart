@@ -1,23 +1,19 @@
 class Quotation {
   final String id;
-  final String conntactName;
-  final String companyName;
+  final String contactName;
+  final String eventType;
   final DateTime eventDate;
-  final String startTime;
-  final String endTime;
-  final int numberOfGuests;
-  final List<String> servicesRequested;
+  final String eventTime;
+  final String guestCount;
   final DateTime createdAt;
 
   Quotation({
     required this.id,
     required this.contactName,
-    required this.companyName,
+    required this.eventType,
     required this.eventDate,
-    required this.startTime,
-    required this.endTime,
-    required this.numberOfGuests,
-    required this.servicesRequested,
+    required this.eventTime,
+    required this.guestCount,
     required this.createdAt,
   });
 
@@ -25,12 +21,10 @@ class Quotation {
     return Quotation(
       id: json['_id'],
       contactName: json['contactName'],
-      companyName: json['companyName'],
+      eventType: json['eventType'],
       eventDate: DateTime.parse(json['eventDate']),
-      startTime: json['startTime'],
-      endTime: json['endTime'],
-      numberOfGuests: json['numberOfGuests'],
-      servicesRequested: List<String>.from(json['servicesRequested']),
+      eventTime: json['eventTime'],
+      guestCount: json['guestCount'].toString(),
       createdAt: DateTime.parse(json['createdAt']),
     );
   }

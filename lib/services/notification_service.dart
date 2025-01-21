@@ -1,9 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-
 class NotificationService {
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
   static final NotificationService _instance = NotificationService._internal();
 
   factory NotificationService() => _instance;
@@ -12,69 +12,76 @@ class NotificationService {
     _initNotifications();
   }
 
+  Future<void> _initNotifications() async {
+    // Request notification permissions for Android (API 33+) and iOS
+    await _requestPermissions();
 
-Future<void> _initNotifications() async {
-  // Request notification permissions for Android (API 33+) and iOS
-  await _requestPermissions();
+    // Android initialization settings
+    const initializationSettingsAndroid =
+        AndroidInitializationSettings('ic_launcher');
 
-  // Android initialization settings
-  const initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
+    // iOS initialization settings
+    const initializationSettingsIOS = DarwinInitializationSettings(
+      requestSoundPermission: true,
+      requestBadgePermission: true,
+      requestAlertPermission: true,
+      defaultPresentAlert: true,
+      defaultPresentSound: true,
+      defaultPresentBanner: true,
+    );
 
-  // iOS initialization settings
-  const initializationSettingsIOS = DarwinInitializationSettings(
-    requestSoundPermission: true,
-    requestBadgePermission: true,
-    requestAlertPermission: true,
-    defaultPresentAlert: true,
-    defaultPresentSound: true,
-    defaultPresentBanner: true,
-  );
+    // Combine Android and iOS settings
+    const initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
 
-  // Combine Android and iOS settings
-  const initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsIOS,
-  );
+    await _notifications.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (details) {
+        print('🔔 Notification tapped: ${details.payload}');
+      },
+    );
 
-  await _notifications.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse: (details) {
-      print('🔔 Notification tapped: ${details.payload}');
-    },
-  );
+    print(' Notifications initialized');
+  }
 
-  print('📱 Notifications initialized');
-}
-
-Future<void> _requestPermissions() async {
-  if (await Permission.notification.isGranted) {
-    print('✅ Notification permission already granted');
-  } else {
-    final status = await Permission.notification.request();
-    if (status.isGranted) {
-      print('✅ Notification permission granted');
+  Future<void> _requestPermissions() async {
+    if (await Permission.notification.isGranted) {
+      print('Notification permission already granted');
     } else {
-      print('❌ Notification permission denied');
+      final status = await Permission.notification.request();
+      if (status.isGranted) {
+        print('Notification permission granted');
+      } else {
+        print('Notification permission denied');
+      }
     }
   }
-}
 
- Future<void> showNotification({
+  Future<void> showNotification({
     required String title,
     required String body,
   }) async {
     try {
-      print('🔔 Attempting to show notification: $title - $body');
-      
+      print('Attempting to show notification: $title - $body');
+      const androidDetails = AndroidNotificationDetails(
+        'channel_id',
+        'channel_name',
+        channelDescription: 'channel_description',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBanner: true,
+        sound: 'default',
+        threadIdentifier: 'thread_id', // Group notifications by thread
+      );
       const notificationDetails = NotificationDetails(
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentSound: true,
-          presentBanner: true,
-          sound: 'default',
-         
-          threadIdentifier: 'thread_id', // Group notifications by thread
-        ),
+        android: androidDetails,
+        iOS: iosDetails,
       );
 
       await _notifications.show(
@@ -82,14 +89,14 @@ Future<void> _requestPermissions() async {
         title,
         body,
         notificationDetails,
+        payload: 'payload',
       );
-      
-      print('✅ Notification shown successfully');
+
+      print('Notification shown successfully');
     } catch (e) {
-      print('❌ Error showing notification: $e');
+      print('Error showing notification: $e');
     }
   }
-
 }
 
 // class NotificationService {
