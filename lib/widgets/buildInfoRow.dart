@@ -7,11 +7,11 @@ class InfoRow extends StatelessWidget {
   final String? type;
 
   const InfoRow({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     this.type,
-  }) : super(key: key);
+  });
 
   Future<void> _openMap(String addressToOpen) async {
     final Uri googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeFull(addressToOpen)}');

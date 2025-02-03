@@ -1,7 +1,22 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
+  static const platform = MethodChannel('com.example.bartenderCompanion/push');
+
+  Future<String?> getAPNsToken() async {
+    try {
+      final String? token = await platform.invokeMethod('getAPNsToken');
+      print('APNs Device Token: $token');
+      return token;
+    } on PlatformException catch (e) {
+      print('Failed to get token: ${e.message}');
+      return null;
+    }
+  }
+
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   static final NotificationService _instance = NotificationService._internal();
@@ -95,6 +110,34 @@ class NotificationService {
       print('Notification shown successfully');
     } catch (e) {
       print('Error showing notification: $e');
+    }
+  }
+
+  Future<void> printAPNsToken() async {
+    try {
+      final String? token = await getAPNsToken();
+      print('\n==========================================');
+      print('APNs Device Token for Backend Configuration:');
+      print(token);
+      print('==========================================\n');
+
+      // Store token in SharedPreferences
+      if (token != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('apns_token', token);
+      }
+    } catch (e) {
+      print('Error getting APNs token: $e');
+    }
+  }
+
+  Future<void> initialize() async {
+    try {
+      await _initNotifications();
+      await printAPNsToken();
+    } catch (e) {
+      print('Error initializing notification service: $e');
+      // Continue without notifications rather than crashing
     }
   }
 }

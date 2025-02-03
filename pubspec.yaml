@@ -40,6 +40,7 @@ dependencies:
   timeago: ^3.7.0
   url_launcher: ^6.3.1
   permission_handler: ^10.1.0
+  shared_preferences: ^2.2.3
   
   
 
@@ -47,12 +48,19 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-
+  flutter_launcher_icons: ^0.14.3
+flutter_icons:
+  android: false # Set to true if you also want to change the Android icon
+  ios: true
+  image_path: "assets/Icon-App.png"
+ 
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+
+ 
 flutter:
   
 

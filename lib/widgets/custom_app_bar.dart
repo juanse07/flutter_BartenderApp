@@ -8,12 +8,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isLoading;
 
   const CustomAppBar({
-    Key? key,
+    super.key,
     required this.title,
     required this.socketService,
     this.onRefresh,
     this.isLoading = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

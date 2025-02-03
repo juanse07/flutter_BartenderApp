@@ -104,7 +104,7 @@ void configureFutureTimeMessages() {
         return dateA.compareTo(dateB); // Oldest first
       });
       
-      // print('Quotations loaded successfully: ${filteredData.length} items');
+     
       setState(() {
         quotations = filteredData;
         isLoading = false;
@@ -138,7 +138,7 @@ void configureFutureTimeMessages() {
   Widget _buildBody() {
     print('Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
 
-  Color _getStatusColor(String state) {
+  Color getStatusColor(String state) {
   switch (state.toLowerCase()) {
     case 'answered':
       return Colors.green;
@@ -244,11 +244,11 @@ void configureFutureTimeMessages() {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: _getStatusColor(quotation['state'] ?? 'pending'),
+                      color: getStatusColor(quotation['state'] ?? 'pending'),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: _getStatusColor(
+                          color: getStatusColor(
                                   quotation['state'] ?? 'pending')
                               .withOpacity(0.3),
                           blurRadius: 4,
@@ -328,11 +328,11 @@ void configureFutureTimeMessages() {
                             InfoRow(label: 'Event Date', value: eventDate),
                             InfoRow(
                               label: 'Time',
-                               value: '${quotation['eventTime'].toString() ?? 'N/A'}',
+                               value: quotation['eventTime'].toString() ?? 'N/A',
                             ),
                             InfoRow(
                               label: 'Guests',
-                              value: '${quotation['guestCount']?.toString() ?? 'N/A'}',
+                              value: quotation['guestCount']?.toString() ?? 'N/A',
                             ),
                             // InfoRow(
                             //   label: 'Services Requested',

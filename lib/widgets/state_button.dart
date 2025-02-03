@@ -9,12 +9,12 @@ class QuotationStateButton extends StatelessWidget {
   final ApiService apiService;
 
   const QuotationStateButton({
-    Key? key,
+    super.key,
     required this.quotationId,
     required this.currentState,
     required this.apiService,
     this.onUpdateComplete,
-  }) : super(key: key);
+  });
 
   Future<void> _handleStateUpdate(BuildContext context) async {
     try {
