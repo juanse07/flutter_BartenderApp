@@ -111,13 +111,21 @@ class ApiService {
       );
 
       print('Response status code: ${response.statusCode}');
-      // print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         if (response.body.isEmpty) {
           throw Exception('Empty response received');
         }
-        return json.decode(response.body) as List<dynamic>;
+
+        // Parse and sort the data
+        List<dynamic> data = json.decode(response.body) as List<dynamic>;
+        data.sort((a, b) {
+          DateTime dateA = DateTime.parse(a['createdAt'] ?? '1970-01-01');
+          DateTime dateB = DateTime.parse(b['createdAt'] ?? '1970-01-01');
+          return dateB.compareTo(dateA); // Reverse order for newer first
+        });
+
+        return data;
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/socket_service.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -21,14 +22,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox(
-          height: 60,
-          width: 120,
-          child: Image.asset('assets/images/denverbartendersSign.png',
-          fit: BoxFit.contain,
-         ),
-       ),
+          height: 80,
+          width: 160,
+          child: Image.asset(
+            'assets/images/denverbartendersSign.png',
+            fit: BoxFit.contain,
+          ),
+        ),
       ),
-      leadingWidth: 150,
+      leadingWidth: 200,
       title: Text(title),
       backgroundColor: Colors.black87,
       actions: [

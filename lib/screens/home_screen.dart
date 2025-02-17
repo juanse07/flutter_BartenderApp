@@ -89,12 +89,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
-      data.sort((a, b) {
-        final dateA = DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime(1900);
-        final dateB = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime(1900);
-        return dateB.compareTo(dateA); // Newest first
-      });
-
       // print('Quotations loaded successfully: ${filteredData.length} items');
       setState(() {
         quotations = filteredData;

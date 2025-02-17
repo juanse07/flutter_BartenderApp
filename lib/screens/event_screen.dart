@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../services/socket_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:url_launcher/url_launcher.dart';
+
+import '../services/api_service.dart';
+import '../services/socket_service.dart';
 import '../widgets/buildInfoRow.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/state_button.dart';
-
 
 class EventScreen extends StatefulWidget {
   const EventScreen({super.key});
@@ -18,12 +16,11 @@ class EventScreen extends StatefulWidget {
 
 class _EventScreenState extends State<EventScreen> {
   final ApiService _apiService = ApiService();
- final SocketService _socketService = SocketService();
+  final SocketService _socketService = SocketService();
   List<dynamic> quotations = [];
   bool isLoading = true;
   String error = '';
 
-  
   @override
   void initState() {
     super.initState();
@@ -33,54 +30,52 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   void _initializeSocketListeners() {
-  print('🔧 Initializing socket listeners...');
-  
-  _socketService.onConnect((_) {
-    print('✅ EventScreen: Socket connected');
-    setState(() {
-      error = '';
+    print('🔧 Initializing socket listeners...');
+
+    _socketService.onConnect((_) {
+      print('✅ EventScreen: Socket connected');
+      setState(() {
+        error = '';
+      });
     });
-  });
 
-  _socketService.onDisconnect((_) {
-    print('❌ EventScreen: Socket disconnected');
-    setState(() {
-      error = 'Socket disconnected';
+    _socketService.onDisconnect((_) {
+      print('❌ EventScreen: Socket disconnected');
+      setState(() {
+        error = 'Socket disconnected';
+      });
     });
-  });
 
-  _socketService.on('newQuotation', (data) {
-    print('📥 EventScreen: New quotation received');
-    print('Data: $data');
-    _loadQuotations();
-  });
+    _socketService.on('newQuotation', (data) {
+      print('📥 EventScreen: New quotation received');
+      print('Data: $data');
+      _loadQuotations();
+    });
 
-  _socketService.on('quotationUpdated', (data) {
-    print('🔄 EventScreen: Quotation updated');
-    print('Data: $data');
-    _loadQuotations();
-  });
+    _socketService.on('quotationUpdated', (data) {
+      print('🔄 EventScreen: Quotation updated');
+      print('Data: $data');
+      _loadQuotations();
+    });
 
-  _socketService.on('quotationDeleted', (data) {
-    print('🗑️ EventScreen: Quotation deleted');
-    print('Data: $data');
-    _loadQuotations();
-  });
-}
+    _socketService.on('quotationDeleted', (data) {
+      print('🗑️ EventScreen: Quotation deleted');
+      print('Data: $data');
+      _loadQuotations();
+    });
+  }
 
-@override
-void dispose() {
-  _socketService.off('newQuotation');
-  _socketService.off('quotationUpdated');
-  _socketService.off('quotationDeleted');
-  super.dispose();
-}
+  @override
+  void dispose() {
+    _socketService.off('newQuotation');
+    _socketService.off('quotationUpdated');
+    _socketService.off('quotationDeleted');
+    super.dispose();
+  }
 
-
-void configureFutureTimeMessages() {
-  timeago.setLocaleMessages('en', timeago.EnMessages());
-}
-
+  void configureFutureTimeMessages() {
+    timeago.setLocaleMessages('en', timeago.EnMessages());
+  }
 
   Future<void> _loadQuotations() async {
     if (!mounted) return;
@@ -92,19 +87,15 @@ void configureFutureTimeMessages() {
 
     try {
       print('Starting to load quotations');
-     final data = await _apiService.getQuotationsWithDebugbyState();
-     
-       final filteredData = data.where((q) => q['state']?.toLowerCase() == 'answered').toList();
-      
+      final data = await _apiService.getQuotationsWithDebugbyState();
+
+      final filteredData =
+          data.where((q) => q['state']?.toLowerCase() == 'answered').toList();
+
       if (!mounted) return;
 
-      data.sort((a, b) {
-        final dateA = DateTime.tryParse(a['eventDate'] ?? '') ?? DateTime(1900);
-        final dateB = DateTime.tryParse(b['eventDate'] ?? '') ?? DateTime(1900);
-        return dateA.compareTo(dateB); // Oldest first
-      });
-      
-     
+   
+
       setState(() {
         quotations = filteredData;
         isLoading = false;
@@ -112,7 +103,7 @@ void configureFutureTimeMessages() {
     } catch (e) {
       print('Error in _loadQuotations: $e');
       if (!mounted) return;
-      
+
       setState(() {
         error = e.toString();
         isLoading = false;
@@ -120,13 +111,11 @@ void configureFutureTimeMessages() {
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     appBar: CustomAppBar(
-         title: '',
+      appBar: CustomAppBar(
+        title: '',
         socketService: _socketService,
         onRefresh: _loadQuotations,
         isLoading: isLoading,
@@ -136,23 +125,22 @@ void configureFutureTimeMessages() {
   }
 
   Widget _buildBody() {
-    print('Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
+    print(
+        'Building body - isLoading: $isLoading, error: $error, quotations: ${quotations.length}');
 
-  Color getStatusColor(String state) {
-  switch (state.toLowerCase()) {
-    case 'answered':
-      return Colors.green;
-    case 'rejected':
-      return Colors.red;
-    case 'in_progress':
-      return Colors.blue;
-    case 'pending':
-    default:
-      return Colors.grey; // Yellow indicator for pending state
-  }
-}
-
-
+    Color getStatusColor(String state) {
+      switch (state.toLowerCase()) {
+        case 'answered':
+          return Colors.green;
+        case 'rejected':
+          return Colors.red;
+        case 'in_progress':
+          return Colors.blue;
+        case 'pending':
+        default:
+          return Colors.grey; // Yellow indicator for pending state
+      }
+    }
 
     if (isLoading) {
       return const Center(
@@ -227,12 +215,17 @@ void configureFutureTimeMessages() {
         itemCount: quotations.length,
         itemBuilder: (context, index) {
           final quotation = quotations[index];
-          final eventDate = DateTime.tryParse(quotation['eventDate'] ?? '')/////wathc for this/////
-              ?.toString().split(' ')[0] ?? 'No date';
+          final eventDate = DateTime.tryParse(
+                      quotation['eventDate'] ?? '') /////wathc for this/////
+                  ?.toString()
+                  .split(' ')[0] ??
+              'No date';
           final createdAt = DateTime.tryParse(quotation['createdAt'] ?? '')
-              ?.toString().split(' ')[0] ?? 'No date';
+                  ?.toString()
+                  .split(' ')[0] ??
+              'No date';
 
-      return Card(
+          return Card(
             margin: const EdgeInsets.all(8.0),
             color: Colors.black87,
             child: ExpansionTile(
@@ -248,8 +241,7 @@ void configureFutureTimeMessages() {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: getStatusColor(
-                                  quotation['state'] ?? 'pending')
+                          color: getStatusColor(quotation['state'] ?? 'pending')
                               .withOpacity(0.3),
                           blurRadius: 4,
                           spreadRadius: 2,
@@ -273,8 +265,7 @@ void configureFutureTimeMessages() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                  'Event Type: ${quotation['eventType'] ?? 'N/A'}',
-
+                    'Event Type: ${quotation['eventType'] ?? 'N/A'}',
                     style: const TextStyle(color: Colors.white70),
                   ),
                   Row(
@@ -308,8 +299,8 @@ void configureFutureTimeMessages() {
                       // Event Information Section
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.amber.withOpacity(0.3)),
+                          border:
+                              Border.all(color: Colors.amber.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.all(12),
@@ -328,11 +319,12 @@ void configureFutureTimeMessages() {
                             InfoRow(label: 'Event Date', value: eventDate),
                             InfoRow(
                               label: 'Time',
-                               value: quotation['eventTime'].toString() ?? 'N/A',
+                              value: quotation['eventTime'].toString() ?? 'N/A',
                             ),
                             InfoRow(
                               label: 'Guests',
-                              value: quotation['guestCount']?.toString() ?? 'N/A',
+                              value:
+                                  quotation['guestCount']?.toString() ?? 'N/A',
                             ),
                             // InfoRow(
                             //   label: 'Services Requested',
@@ -346,8 +338,8 @@ void configureFutureTimeMessages() {
                       // Contact Information Section
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.amber.withOpacity(0.3)),
+                          border:
+                              Border.all(color: Colors.amber.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.all(12),
@@ -385,8 +377,8 @@ void configureFutureTimeMessages() {
                       // Notes Section
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.amber.withOpacity(0.3)),
+                          border:
+                              Border.all(color: Colors.amber.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.all(12),
@@ -401,11 +393,11 @@ void configureFutureTimeMessages() {
                           ],
                         ),
                       ),
-                        QuotationStateButton(
-                         quotationId: quotation['_id'],
-                           currentState: quotation['state'],
-                            apiService: _apiService,
-                            onUpdateComplete: _loadQuotations,
+                      QuotationStateButton(
+                        quotationId: quotation['_id'],
+                        currentState: quotation['state'],
+                        apiService: _apiService,
+                        onUpdateComplete: _loadQuotations,
                       ),
                     ],
                   ),

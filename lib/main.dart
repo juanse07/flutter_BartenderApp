@@ -16,26 +16,27 @@ void main() async {
     bool initSuccess = true;
     String? error;
 
-    // Run these operations in parallel
-    await Future.wait([
-      dotenv.load().catchError((e) {
-        print("Error loading environment variables: $e");
-        initSuccess = false;
-        error = e.toString();
-        return null;
-      }),
-      NotificationService().initialize().catchError((e) {
-        print("Error initializing notifications: $e");
-        // Don't fail the app for notification errors
-        return null;
-      }),
-    ]);
+    // Load env first
+    await dotenv.load().catchError((e) {
+      print("Error loading environment variables: $e");
+      initSuccess = false;
+      error = e.toString();
+      return null;
+    });
 
     if (!initSuccess) {
       runApp(ErrorApp(error: error ?? 'Failed to initialize app'));
-    } else {
-      runApp(const MyApp());
+      return;
     }
+
+    // Initialize notifications after env is loaded
+    await NotificationService().initialize().catchError((e) {
+      print("Error initializing notifications: $e");
+      // Don't fail the app, but log the error
+      return null;
+    });
+
+    runApp(const MyApp());
   } catch (e) {
     print("Error during initialization: $e");
     runApp(ErrorApp(error: e.toString()));
@@ -91,13 +92,21 @@ class ErrorApp extends StatelessWidget {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    print("Building MyApp");
+  State<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'DenverBartenders Navigation',
       debugShowCheckedModeBanner: false,

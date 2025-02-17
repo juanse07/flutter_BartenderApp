@@ -62,7 +62,7 @@ class SocketService {
 
       try {
         if (backendEvent == 'newBarServiceQuotation') {
-          print(' Attempting to show notification for new quotation');
+          print('🔄 Socket event received: newBarServiceQuotation');
           if (data is Map<String, dynamic>) {
             String contactName = data['contactName']?.toString() ?? 'Unknown';
             String eventType = data['eventType']?.toString() ?? 'N/A';
@@ -73,14 +73,19 @@ class SocketService {
                 ? data['guestCount'].toString()
                 : data['guestCount']?.toString() ?? 'N/A';
 
+            print('📝 Preparing notification with data:');
+            print('Contact: $contactName');
+            print('Date: $eventDate');
+            print('Time: $eventTime');
+            print('Guests: $guestCount');
+
             await _notificationService.showNotification(
               title: 'NSC from: $contactName',
               body:
                   'Date: $eventDate\nTime: $eventTime\nGuests: $guestCount\nAprox',
             );
-            print('Notification sent for new quotation');
           } else {
-            print(' Invalid data format received: $data');
+            print('⚠️ Invalid data format received: $data');
             await _notificationService.showNotification(
               title: 'New Quotation',
               body: 'A new quotation request has been received',
@@ -98,8 +103,7 @@ class SocketService {
           );
         }
       } catch (e) {
-        print('Error handling socket event: $e');
-        print('Stack trace: ${StackTrace.current}');
+        print('❌ Error processing socket event: $e');
       }
 
       handler(data);
